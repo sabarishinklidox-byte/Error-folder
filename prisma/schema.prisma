@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id                 Int               @id @default(autoincrement())
+  name               String
+  email              String            @unique
+  password           String            @map("password_hash")
+  role               Role              @default(user)
+  createdAt          DateTime          @default(now()) @map("created_at")
+
+  // RELATIONS
+  expenseCategories  ExpenseCategory[]
+  incomeCategories   IncomeCategory[]
+  expenses           Expense[]         // ✅ FIXED
+  incomes            Income[]          // ✅ FIXED
+  @@map("User")
+}
+
+model ExpenseCategory {
+  id        Int       @id @default(autoincrement())
+  name      String
+  userId    Int       @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  expenses  Expense[]
+}
+
+model IncomeCategory {
+  id        Int       @id @default(autoincrement())
+  name      String
+  userId    Int       @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  incomes   Income[]
+}
+
+model Expense {
+  id         Int              @id @default(autoincrement())
+  userId     Int              @map("user_id")
+  categoryId Int              @map("category_id")
+  amount     Float
+  note       String?
+  date       DateTime
+  imageUrl   String?          @map("image_url")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  user       User             @relation(fields: [userId], references: [id])          // ✅ FIXED
+  category   ExpenseCategory  @relation(fields: [categoryId], references: [id])
+}
+
+model Income {
+  id         Int              @id @default(autoincrement())
+  userId     Int              @map("user_id")
+  categoryId Int?             @map("category_id")
+  amount     Float
+  source     String?
+  note       String?
+  date       DateTime
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  user       User             @relation(fields: [userId], references: [id])         // ✅ FIXED
+  category   IncomeCategory?  @relation(fields: [categoryId], references: [id])
+}
+
