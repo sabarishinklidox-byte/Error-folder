@@ -23,7 +23,7 @@ export const signup = async (req, res) => {
       data: {
         name,
         email,
-        password_hash: passwordHash, // ✔ matches Prisma model
+        password: passwordHash, // ✔ matches Prisma model
         role: role === 'admin' ? 'admin' : 'user',
       },
     });
